@@ -5,295 +5,68 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MAS IBNU HUSAIN - Inspirative, Islamic dan School</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="/_sdk/element_sdk.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&amp;family=Playfair+Display:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
     <style>
-        body {
-            box-sizing: border-box;
-        }
-        
-        * {
-            font-family: 'Poppins', sans-serif;
-        }
-        
-        .font-playfair {
-            font-family: 'Playfair Display', serif;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(-30px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-        
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-        
-        @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 0 20px rgba(37, 99, 235, 0.3); }
-            50% { box-shadow: 0 0 40px rgba(37, 99, 235, 0.6); }
-        }
-        
-        .animate-fade-in {
-            animation: fadeIn 0.8s ease-out forwards;
-        }
-        
-        .animate-slide-in {
-            animation: slideIn 0.6s ease-out forwards;
-        }
-        
-        .animate-float {
-            animation: float 3s ease-in-out infinite;
-        }
-        
-        .animate-pulse-glow {
-            animation: pulse-glow 2s ease-in-out infinite;
-        }
-        
+        /* [Semua style CSS Anda tetap sama persis] */
+        body { box-sizing: border-box; }
+        * { font-family: 'Poppins', sans-serif; }
+        .font-playfair { font-family: 'Playfair Display', serif; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 20px rgba(37, 99, 235, 0.3); } 50% { box-shadow: 0 0 40px rgba(37, 99, 235, 0.6); } }
+        .animate-fade-in { animation: fadeIn 0.8s ease-out forwards; }
+        .animate-slide-in { animation: slideIn 0.6s ease-out forwards; }
+        .animate-float { animation: float 3s ease-in-out infinite; }
+        .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
         .delay-100 { animation-delay: 0.1s; }
         .delay-200 { animation-delay: 0.2s; }
         .delay-300 { animation-delay: 0.3s; }
         .delay-400 { animation-delay: 0.4s; }
         .delay-500 { animation-delay: 0.5s; }
-        
-        .gradient-text {
-            background: linear-gradient(135deg, #1e40af, #3b82f6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .card-hover {
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        
-        .card-hover:hover {
-            transform: translateY(-8px) scale(1.02);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .btn-primary::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: left 0.5s ease;
-        }
-        
-        .btn-primary:hover::before {
-            left: 100%;
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(37, 99, 235, 0.4);
-        }
-        
-        .nav-link {
-            position: relative;
-            transition: color 0.3s ease;
-        }
-        
-        .nav-link::after {
-            content: '';
-            position: absolute;
-            bottom: -4px;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: linear-gradient(90deg, #1e40af, #3b82f6);
-            transition: width 0.3s ease;
-        }
-        
-        .nav-link:hover::after,
-        .nav-link.active::after {
-            width: 100%;
-        }
-        
-        .hero-slider {
-            position: relative;
-            height: 100%;
-            overflow: hidden;
-        }
-        
-        .slide {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            transition: opacity 1s ease-in-out;
-        }
-        
-        .slide.active {
-            opacity: 1;
-        }
-        
-        .slider-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.5);
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .slider-dot.active {
-            background: white;
-            transform: scale(1.3);
-        }
-        
-        .slider-dot:hover {
-            background: rgba(255, 255, 255, 0.8);
-        }
-        
-        .glass-effect {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-        }
-        
-        .section-title {
-            position: relative;
-            display: inline-block;
-        }
-        
-        .section-title::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80px;
-            height: 4px;
-            background: linear-gradient(90deg, #1e40af, #3b82f6);
-            border-radius: 2px;
-        }
-        
-        .feature-icon {
-            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-            transition: all 0.3s ease;
-        }
-        
-        .card-hover:hover .feature-icon {
-            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
-            transform: scale(1.1) rotate(5deg);
-        }
-        
-        .card-hover:hover .feature-icon svg {
-            color: white;
-        }
-        
-        .scroll-indicator {
-            animation: bounce 2s infinite;
-        }
-        
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% { transform: translateY(0) translateX(-50%); }
-            40% { transform: translateY(-20px) translateX(-50%); }
-            60% { transform: translateY(-10px) translateX(-50%); }
-        }
-        
-        .testimonial-card {
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-        }
-        
-        .quote-icon {
-            color: #3b82f6;
-            opacity: 0.3;
-        }
-        
-        .mobile-menu {
-            transform: translateX(-100%);
-            transition: transform 0.3s ease;
-        }
-        
-        .mobile-menu.open {
-            transform: translateX(0);
-        }
-        
-        .page-content {
-            display: none;
-            opacity: 0;
-        }
-        
-        .page-content.active {
-            display: block;
-            opacity: 1;
-            animation: fadeIn 0.5s ease-out forwards;
-        }
-        
-        .back-btn {
-            transition: all 0.3s ease;
-        }
-        
-        .back-btn:hover {
-            transform: translateX(-5px);
-        }
-        
-        .facility-card, .activity-card, .ekskul-card {
-            overflow: hidden;
-        }
-        
-        .facility-card img, .activity-card img, .ekskul-card img {
-            transition: transform 0.5s ease;
-        }
-        
-        .facility-card:hover img, .activity-card:hover img, .ekskul-card:hover img {
-            transform: scale(1.1);
-        }
-        
-        .achievement-slider {
-            display: flex;
-            gap: 24px;
-            overflow-x: auto;
-            scroll-behavior: smooth;
-            padding: 20px 0;
-        }
-        
-        .achievement-slider::-webkit-scrollbar {
-            height: 8px;
-        }
-        
-        .achievement-slider::-webkit-scrollbar-track {
-            background: #e2e8f0;
-            border-radius: 4px;
-        }
-        
-        .achievement-slider::-webkit-scrollbar-thumb {
-            background: linear-gradient(90deg, #1e40af, #3b82f6);
-            border-radius: 4px;
-        }
-
-        .line-clamp-2 {
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-        
-        .line-clamp-3 {
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
+        .gradient-text { background: linear-gradient(135deg, #1e40af, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .card-hover { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .card-hover:hover { transform: translateY(-8px) scale(1.02); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+        .btn-primary { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); transition: all 0.3s ease; position: relative; overflow: hidden; }
+        .btn-primary::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); transition: left 0.5s ease; }
+        .btn-primary:hover::before { left: 100%; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(37, 99, 235, 0.4); }
+        .nav-link { position: relative; transition: color 0.3s ease; }
+        .nav-link::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: linear-gradient(90deg, #1e40af, #3b82f6); transition: width 0.3s ease; }
+        .nav-link:hover::after, .nav-link.active::after { width: 100%; }
+        .hero-slider { position: relative; height: 100%; overflow: hidden; }
+        .slide { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; transition: opacity 1s ease-in-out; }
+        .slide.active { opacity: 1; }
+        .slider-dot { width: 12px; height: 12px; border-radius: 50%; background: rgba(255, 255, 255, 0.5); cursor: pointer; transition: all 0.3s ease; }
+        .slider-dot.active { background: white; transform: scale(1.3); }
+        .slider-dot:hover { background: rgba(255, 255, 255, 0.8); }
+        .glass-effect { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        .section-title { position: relative; display: inline-block; }
+        .section-title::after { content: ''; position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); width: 80px; height: 4px; background: linear-gradient(90deg, #1e40af, #3b82f6); border-radius: 2px; }
+        .feature-icon { background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); transition: all 0.3s ease; }
+        .card-hover:hover .feature-icon { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); transform: scale(1.1) rotate(5deg); }
+        .card-hover:hover .feature-icon svg { color: white; }
+        .scroll-indicator { animation: bounce 2s infinite; }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateY(0) translateX(-50%); } 40% { transform: translateY(-20px) translateX(-50%); } 60% { transform: translateY(-10px) translateX(-50%); } }
+        .testimonial-card { background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); }
+        .quote-icon { color: #3b82f6; opacity: 0.3; }
+        .mobile-menu { transform: translateX(-100%); transition: transform 0.3s ease; }
+        .mobile-menu.open { transform: translateX(0); }
+        .page-content { display: none; opacity: 0; }
+        .page-content.active { display: block; opacity: 1; animation: fadeIn 0.5s ease-out forwards; }
+        .back-btn { transition: all 0.3s ease; }
+        .back-btn:hover { transform: translateX(-5px); }
+        .facility-card, .activity-card, .ekskul-card { overflow: hidden; }
+        .facility-card img, .activity-card img, .ekskul-card img { transition: transform 0.5s ease; }
+        .facility-card:hover img, .activity-card:hover img, .ekskul-card:hover img { transform: scale(1.1); }
+        .achievement-slider { display: flex; gap: 24px; overflow-x: auto; scroll-behavior: smooth; padding: 20px 0; }
+        .achievement-slider::-webkit-scrollbar { height: 8px; }
+        .achievement-slider::-webkit-scrollbar-track { background: #e2e8f0; border-radius: 4px; }
+        .achievement-slider::-webkit-scrollbar-thumb { background: linear-gradient(90deg, #1e40af, #3b82f6); border-radius: 4px; }
+        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .line-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
     </style>
     <style>@view-transition { navigation: auto; }</style>
 </head>
@@ -828,13 +601,13 @@
                         </div>
                         <div>
                             <h4 class="font-bold text-lg mb-4">Ikuti Kami</h4>
-                <div class="flex gap-4">
-                    <!-- Instagram Icon - Logo Asli -->
-                    <a href="https://www.instagram.com/ma.ibnu_husain" target="_blank" rel="noopener noreferrer" class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-white/20 transition-colors group" title="Instagram MAS Ibnu Husain">
-                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
-                        </svg>
-                    </a>
+                            <div class="flex gap-4">
+                                <!-- Instagram Icon -->
+                                <a href="https://www.instagram.com/ma.ibnu_husain" target="_blank" rel="noopener noreferrer" class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-white/20 transition-colors group" title="Instagram MAS Ibnu Husain">
+                                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+                                    </svg>
+                                </a>
                                 <a href="https://www.youtube.com/@maibnuhusain" target="_blank" rel="noopener noreferrer" class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-white/20 transition-colors" title="YouTube MAS Ibnu Husain">
                                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
@@ -1794,7 +1567,7 @@
 
                     <!-- Add News Button -->
                     <div class="mb-8">
-                        <button onclick="openAddNewsModalAdmin()" class="btn-primary text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 hover:shadow-xl transition-all">
+                        <button onclick="openAddNewsModal()" class="btn-primary text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 hover:shadow-xl transition-all">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                             </svg>
@@ -1956,8 +1729,14 @@
 
         let config = { ...defaultConfig };
 
-        // Data SDK initialization state
-        let isDataSDKReady = true; // Set true untuk fallback
+        // ============================================
+        // SUPABASE CONFIGURATION - GANTI DENGAN DATA ANDA!
+        // ============================================
+        const SUPABASE_URL = 'https://hkicfcejwzqlupvckaba.supabase.co'; // GANTI!
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhraWNmY2Vqd3pxbHVwdmNrYWJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5MDkzMTIsImV4cCI6MjA4NzQ4NTMxMn0.ol81-q3YUUkiqoKa8iIJqO4rJTL35D-OGsMKtqaCBGU'; // GANTI!
+        
+        // Inisialisasi Supabase client
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // News Data Management
         let newsData = [];
@@ -1975,24 +1754,192 @@
             'Lainnya': { icon: '📝', color: 'gray', bgColor: 'bg-gray-50', textColor: 'text-gray-600', borderColor: 'border-gray-200' }
         };
 
-        // Initialize Data
-        function initData() {
-            // Load data dari localStorage jika ada
+        // ============================================
+        // FUNGSI SUPABASE (SEMUA DATA DI SINI)
+        // ============================================
+
+        // Load semua berita dari Supabase
+        async function loadNewsFromSupabase() {
+            try {
+                showToast('Memuat berita...', 'success');
+                
+                const { data, error } = await supabase
+                    .from('berita')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (error) {
+                    throw error;
+                }
+                
+                if (data && data.length > 0) {
+                    // Konversi data Supabase ke format yang digunakan website
+                    newsData = data.map(item => ({
+                        __backendId: item.id.toString(),
+                        title: item.title,
+                        category: item.category,
+                        content: item.content,
+                        image_url: item.image_url || '',
+                        created_at: item.created_at
+                    }));
+                } else {
+                    // Jika tidak ada data, buat sample data
+                    await createSampleDataInSupabase();
+                }
+                
+                renderNews();
+                if (isAdminLoggedIn) {
+                    renderAdminNewsList();
+                }
+                
+            } catch (error) {
+                console.error('Error loading news:', error);
+                showToast('Gagal memuat berita: ' + error.message, 'error');
+                
+                // Fallback ke localStorage jika Supabase error
+                loadNewsFromLocalStorage();
+            }
+        }
+
+        // Buat sample data di Supabase
+        async function createSampleDataInSupabase() {
+            const sampleNews = [
+                {
+                    title: 'Penerimaan Peserta Didik Baru 2025/2026',
+                    category: 'Pengumuman',
+                    content: 'MAS Ibnu Husain membuka pendaftaran siswa baru tahun ajaran 2025/2026. Informasi lebih lanjut hubungi panitia PPDB.',
+                    image_url: '',
+                    created_at: Date.now() - (2 * 24 * 60 * 60 * 1000)
+                },
+                {
+                    title: 'Prestasi Siswa di Olimpiade Sains Nasional',
+                    category: 'Prestasi',
+                    content: 'Siswa MAS Ibnu Husain meraih medali emas dalam Olimpiade Sains Nasional tingkat provinsi.',
+                    image_url: '',
+                    created_at: Date.now() - (5 * 24 * 60 * 60 * 1000)
+                }
+            ];
+            
+            try {
+                const { data, error } = await supabase
+                    .from('berita')
+                    .insert(sampleNews)
+                    .select();
+                
+                if (error) throw error;
+                
+                if (data) {
+                    newsData = data.map(item => ({
+                        __backendId: item.id.toString(),
+                        title: item.title,
+                        category: item.category,
+                        content: item.content,
+                        image_url: item.image_url || '',
+                        created_at: item.created_at
+                    }));
+                }
+                
+                showToast('Sample data berhasil dibuat', 'success');
+                
+            } catch (error) {
+                console.error('Error creating sample data:', error);
+                showToast('Gagal membuat sample data', 'error');
+                
+                // Fallback ke localStorage
+                createSampleDataLocal();
+            }
+        }
+
+        // Tambah berita ke Supabase
+        async function addNewsToSupabase(newsItem) {
+            try {
+                const { data, error } = await supabase
+                    .from('berita')
+                    .insert([{
+                        title: newsItem.title,
+                        category: newsItem.category,
+                        content: newsItem.content,
+                        image_url: newsItem.image_url,
+                        created_at: newsItem.created_at
+                    }])
+                    .select();
+                
+                if (error) throw error;
+                
+                if (data && data[0]) {
+                    // Gunakan ID dari Supabase
+                    return {
+                        ...newsItem,
+                        __backendId: data[0].id.toString()
+                    };
+                }
+                
+                return null;
+                
+            } catch (error) {
+                console.error('Error adding news:', error);
+                throw error;
+            }
+        }
+
+        // Update berita di Supabase
+        async function updateNewsInSupabase(id, updatedData) {
+            try {
+                const { error } = await supabase
+                    .from('berita')
+                    .update({
+                        title: updatedData.title,
+                        category: updatedData.category,
+                        content: updatedData.content,
+                        image_url: updatedData.image_url
+                    })
+                    .eq('id', id);
+                
+                if (error) throw error;
+                
+                return true;
+                
+            } catch (error) {
+                console.error('Error updating news:', error);
+                throw error;
+            }
+        }
+
+        // Hapus berita dari Supabase
+        async function deleteNewsFromSupabase(id) {
+            try {
+                const { error } = await supabase
+                    .from('berita')
+                    .delete()
+                    .eq('id', id);
+                
+                if (error) throw error;
+                
+                return true;
+                
+            } catch (error) {
+                console.error('Error deleting news:', error);
+                throw error;
+            }
+        }
+
+        // Fallback: Load dari localStorage (jika Supabase error)
+        function loadNewsFromLocalStorage() {
             const savedNews = localStorage.getItem('newsData');
             if (savedNews) {
                 try {
                     newsData = JSON.parse(savedNews);
                 } catch (e) {
                     console.error('Error parsing saved news:', e);
-                    createSampleData();
+                    createSampleDataLocal();
                 }
             } else {
-                createSampleData();
+                createSampleDataLocal();
             }
             renderNews();
         }
 
-        function createSampleData() {
+        function createSampleDataLocal() {
             newsData = [
                 {
                     __backendId: 'sample1',
@@ -2011,6 +1958,12 @@
                     created_at: Date.now() - (5 * 24 * 60 * 60 * 1000)
                 }
             ];
+        }
+
+        // Initialize Data
+        function initData() {
+            // Coba load dari Supabase
+            loadNewsFromSupabase();
         }
 
         // Show Toast Notification
@@ -2115,7 +2068,7 @@
                     <div class="bg-white rounded-2xl shadow-lg overflow-hidden card-hover cursor-pointer" onclick="viewNewsDetail('${news.__backendId}')">
                         ${imageUrl ? `
                             <div class="h-48 overflow-hidden bg-gray-100">
-                                <img src="${imageUrl}" alt="${news.title}" class="w-full h-full object-cover" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'w-full h-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center\\'><span class=\\'text-6xl\\'>${style.icon}</span></div>';">
+                                <img src="${imageUrl}" alt="${escapeHtml(news.title)}" class="w-full h-full object-cover" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'w-full h-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center\\'><span class=\\'text-6xl\\'>${style.icon}</span></div>';">
                             </div>
                         ` : `
                             <div class="h-48 bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
@@ -2158,7 +2111,7 @@
         }
 
         // Open Add News Modal
-        function openAddNewsModalAdmin() {
+        function openAddNewsModal() {
             editingNewsId = null;
             document.getElementById('modal-title').textContent = 'Tambah Berita Baru';
             document.getElementById('submit-text').textContent = 'Simpan Berita';
@@ -2245,7 +2198,7 @@
         }
 
         // Handle News Submit
-        function handleNewsSubmit(event) {
+        async function handleNewsSubmit(event) {
             event.preventDefault();
             
             const submitBtn = document.getElementById('submit-btn');
@@ -2272,21 +2225,30 @@
             try {
                 if (editingNewsId) {
                     // UPDATE MODE
+                    const newsToUpdate = {
+                        title: title,
+                        category: category,
+                        content: content,
+                        image_url: imageUrl
+                    };
+                    
+                    // Update di Supabase
+                    await updateNewsInSupabase(parseInt(editingNewsId), newsToUpdate);
+                    
+                    // Update di newsData lokal
                     const index = newsData.findIndex(n => n.__backendId === editingNewsId);
                     if (index !== -1) {
                         newsData[index] = {
                             ...newsData[index],
-                            title: title,
-                            category: category,
-                            content: content,
-                            image_url: imageUrl
+                            ...newsToUpdate
                         };
-                        showToast('Berita berhasil diupdate!', 'success');
                     }
+                    
+                    showToast('Berita berhasil diupdate!', 'success');
+                    
                 } else {
                     // CREATE MODE
                     const newsItem = {
-                        __backendId: 'news_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
                         title: title,
                         category: category,
                         content: content,
@@ -2294,18 +2256,23 @@
                         created_at: Date.now()
                     };
                     
-                    newsData.push(newsItem);
-                    showToast('Berita berhasil ditambahkan!', 'success');
+                    // Simpan ke Supabase
+                    const savedNews = await addNewsToSupabase(newsItem);
+                    
+                    if (savedNews) {
+                        newsData.push(savedNews);
+                        showToast('Berita berhasil ditambahkan!', 'success');
+                    } else {
+                        throw new Error('Gagal menyimpan ke database');
+                    }
                 }
-                
-                // Simpan ke localStorage
-                localStorage.setItem('newsData', JSON.stringify(newsData));
                 
                 closeNewsModal();
                 renderNews();
                 if (isAdminLoggedIn) {
                     renderAdminNewsList();
                 }
+                
             } catch (error) {
                 console.error('Error saving news:', error);
                 showToast('Terjadi kesalahan: ' + error.message, 'error');
@@ -2387,14 +2354,24 @@
         }
 
         // Confirm Delete
-        function confirmDelete() {
+        async function confirmDelete() {
             if (!deletingNewsId) return;
             
-            const index = newsData.findIndex(n => n.__backendId === deletingNewsId);
-            if (index !== -1) {
-                newsData.splice(index, 1);
-                localStorage.setItem('newsData', JSON.stringify(newsData));
+            try {
+                // Hapus dari Supabase
+                await deleteNewsFromSupabase(parseInt(deletingNewsId));
+                
+                // Hapus dari newsData lokal
+                const index = newsData.findIndex(n => n.__backendId === deletingNewsId);
+                if (index !== -1) {
+                    newsData.splice(index, 1);
+                }
+                
                 showToast('Berita berhasil dihapus!', 'success');
+                
+            } catch (error) {
+                console.error('Error deleting news:', error);
+                showToast('Gagal menghapus berita: ' + error.message, 'error');
             }
             
             closeDeleteConfirmation();
@@ -2656,7 +2633,7 @@
 
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Page loaded, initializing...');
+            console.log('Page loaded, initializing with Supabase...');
             initData();
             
             // Initialize slider
@@ -2752,9 +2729,4 @@
         }
     </script>
 </body>
-
 </html>
-
-
-
-
