@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MAS IBNU HUSAIN - Inspirative, Islamic dan School</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="/_sdk/element_sdk.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/_sdk/data_sdk.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&amp;family=Playfair+Display:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
     <style>
         body {
@@ -1975,22 +1976,75 @@
             'Lainnya': { icon: '📝', color: 'gray', bgColor: 'bg-gray-50', textColor: 'text-gray-600', borderColor: 'border-gray-200' }
         };
 
-        // Initialize Data
-        function initData() {
-            // Load data dari localStorage jika ada
-            const savedNews = localStorage.getItem('newsData');
-            if (savedNews) {
-                try {
-                    newsData = JSON.parse(savedNews);
-                } catch (e) {
-                    console.error('Error parsing saved news:', e);
-                    createSampleData();
-                }
-            } else {
-                createSampleData();
-            }
-            renderNews();
+        // Inisialisasi Supabase
+const supabaseUrl = 'https://pssuygmnbezbiohglrba.supabase.co'; 
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzc3V5Z21uYmV6YmlvaGdscmJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5OTE0MzAsImV4cCI6MjA4NzU2NzQzMH0.rrkkTMjRcZIn_HPiBDt3wqB7-UjIRlg83k98MiYtxZg.';
+const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+// Initialize Data dari Supabase
+async function initData() {
+    try {
+        const { data, error } = await supabase
+            .from('news')
+            .select('*')
+            .order('created_at', { ascending: false });
+            
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+            // Konversi id jadi __backendId untuk kompatibilitas
+            newsData = data.map(item => ({
+                ...item,
+                __backendId: item.id.toString()
+            }));
+        } else {
+            // Jika tidak ada data, buat data default
+            await createSampleData();
         }
+        
+        renderNews();
+    } catch (error) {
+        console.error('Error loading news:', error);
+        showToast('Gagal memuat berita: ' + error.message, 'error');
+    }
+}
+
+async function createSampleData() {
+    const sampleNews = [
+        {
+            title: 'Penerimaan Peserta Didik Baru 2025/2026',
+            category: 'Pengumuman',
+            content: 'MAS Ibnu Husain membuka pendaftaran siswa baru tahun ajaran 2025/2026. Informasi lebih lanjut hubungi panitia PPDB.',
+            image_url: '',
+            created_at: Date.now() - (2 * 24 * 60 * 60 * 1000)
+        },
+        {
+            title: 'Prestasi Siswa di Olimpiade Sains Nasional',
+            category: 'Prestasi',
+            content: 'Siswa MAS Ibnu Husain meraih medali emas dalam Olimpiade Sains Nasional tingkat provinsi.',
+            image_url: '',
+            created_at: Date.now() - (5 * 24 * 60 * 60 * 1000)
+        }
+    ];
+    
+    for (const news of sampleNews) {
+        const { data, error } = await supabase
+            .from('news')
+            .insert([news])
+            .select();
+            
+        if (error) {
+            console.error('Error creating sample data:', error);
+        } else if (data) {
+            newsData.push({
+                ...data[0],
+                __backendId: data[0].id.toString()
+            });
+        }
+    }
+    
+    showToast('Data contoh berhasil dibuat!', 'success');
+}
 
         function createSampleData() {
             newsData = [
@@ -2245,75 +2299,96 @@
         }
 
         // Handle News Submit
-        function handleNewsSubmit(event) {
-            event.preventDefault();
+async function handleNewsSubmit(event) {
+    event.preventDefault();
+    
+    const submitBtn = document.getElementById('submit-btn');
+    const submitText = document.getElementById('submit-text');
+    const originalText = submitText.textContent;
+    
+    // Show loading state
+    submitBtn.disabled = true;
+    submitText.textContent = 'Menyimpan...';
+    
+    const title = document.getElementById('news-title').value.trim();
+    const category = document.getElementById('news-category').value;
+    const content = document.getElementById('news-content').value.trim();
+    const imageUrl = document.getElementById('news-image-url').value.trim();
+    
+    // Validate required fields
+    if (!title || !category || !content) {
+        showToast('Judul, Kategori, dan Isi Berita wajib diisi!', 'error');
+        submitBtn.disabled = false;
+        submitText.textContent = originalText;
+        return;
+    }
+    
+    try {
+        if (editingNewsId) {
+            // UPDATE MODE
+            const { data, error } = await supabase
+                .from('news')
+                .update({
+                    title: title,
+                    category: category,
+                    content: content,
+                    image_url: imageUrl
+                })
+                .eq('id', parseInt(editingNewsId))
+                .select();
+                
+            if (error) throw error;
             
-            const submitBtn = document.getElementById('submit-btn');
-            const submitText = document.getElementById('submit-text');
-            const originalText = submitText.textContent;
-            
-            // Show loading state
-            submitBtn.disabled = true;
-            submitText.textContent = 'Menyimpan...';
-            
-            const title = document.getElementById('news-title').value.trim();
-            const category = document.getElementById('news-category').value;
-            const content = document.getElementById('news-content').value.trim();
-            const imageUrl = document.getElementById('news-image-url').value.trim();
-            
-            // Validate required fields
-            if (!title || !category || !content) {
-                showToast('Judul, Kategori, dan Isi Berita wajib diisi!', 'error');
-                submitBtn.disabled = false;
-                submitText.textContent = originalText;
-                return;
-            }
-            
-            try {
-                if (editingNewsId) {
-                    // UPDATE MODE
-                    const index = newsData.findIndex(n => n.__backendId === editingNewsId);
-                    if (index !== -1) {
-                        newsData[index] = {
-                            ...newsData[index],
-                            title: title,
-                            category: category,
-                            content: content,
-                            image_url: imageUrl
-                        };
-                        showToast('Berita berhasil diupdate!', 'success');
-                    }
-                } else {
-                    // CREATE MODE
-                    const newsItem = {
-                        __backendId: 'news_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-                        title: title,
-                        category: category,
-                        content: content,
-                        image_url: imageUrl,
-                        created_at: Date.now()
+            if (data) {
+                // Update local newsData
+                const index = newsData.findIndex(n => n.__backendId === editingNewsId);
+                if (index !== -1) {
+                    newsData[index] = {
+                        ...data[0],
+                        __backendId: data[0].id.toString()
                     };
-                    
-                    newsData.push(newsItem);
-                    showToast('Berita berhasil ditambahkan!', 'success');
                 }
+                showToast('Berita berhasil diupdate!', 'success');
+            }
+        } else {
+            // CREATE MODE
+            const newsItem = {
+                title: title,
+                category: category,
+                content: content,
+                image_url: imageUrl,
+                created_at: Date.now()
+            };
+            
+            const { data, error } = await supabase
+                .from('news')
+                .insert([newsItem])
+                .select();
                 
-                // Simpan ke localStorage
-                localStorage.setItem('newsData', JSON.stringify(newsData));
-                
-                closeNewsModal();
-                renderNews();
-                if (isAdminLoggedIn) {
-                    renderAdminNewsList();
-                }
-            } catch (error) {
-                console.error('Error saving news:', error);
-                showToast('Terjadi kesalahan: ' + error.message, 'error');
-            } finally {
-                submitBtn.disabled = false;
-                submitText.textContent = originalText;
+            if (error) throw error;
+            
+            if (data) {
+                newsData.push({
+                    ...data[0],
+                    __backendId: data[0].id.toString()
+                });
+                showToast('Berita berhasil ditambahkan!', 'success');
             }
         }
+        
+        closeNewsModal();
+        renderNews();
+        if (isAdminLoggedIn) {
+            renderAdminNewsList();
+        }
+    } catch (error) {
+        console.error('Error saving news:', error);
+        showToast('Terjadi kesalahan: ' + error.message, 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitText.textContent = originalText;
+    }
+}
 
         // View News Detail
         function viewNewsDetail(newsId) {
@@ -2387,23 +2462,34 @@
         }
 
         // Confirm Delete
-        function confirmDelete() {
-            if (!deletingNewsId) return;
+async function confirmDelete() {
+    if (!deletingNewsId) return;
+    
+    try {
+        const { error } = await supabase
+            .from('news')
+            .delete()
+            .eq('id', parseInt(deletingNewsId));
             
-            const index = newsData.findIndex(n => n.__backendId === deletingNewsId);
-            if (index !== -1) {
-                newsData.splice(index, 1);
-                localStorage.setItem('newsData', JSON.stringify(newsData));
-                showToast('Berita berhasil dihapus!', 'success');
-            }
-            
-            closeDeleteConfirmation();
-            renderNews();
-            if (isAdminLoggedIn) {
-                renderAdminNewsList();
-            }
-            deletingNewsId = null;
+        if (error) throw error;
+        
+        const index = newsData.findIndex(n => n.__backendId === deletingNewsId);
+        if (index !== -1) {
+            newsData.splice(index, 1);
+            showToast('Berita berhasil dihapus!', 'success');
         }
+    } catch (error) {
+        console.error('Error deleting news:', error);
+        showToast('Gagal menghapus berita: ' + error.message, 'error');
+    }
+    
+    closeDeleteConfirmation();
+    renderNews();
+    if (isAdminLoggedIn) {
+        renderAdminNewsList();
+    }
+    deletingNewsId = null;
+}
 
         // Handle Admin Login
         function handleAdminLogin(event) {
@@ -2655,16 +2741,23 @@
         }
 
         // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Page loaded, initializing...');
-            initData();
-            
-            // Initialize slider
-            const slides = document.querySelectorAll('.slide');
-            if (slides.length > 0) {
-                sliderInterval = setInterval(nextSlide, 10000);
-            }
-        });
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Page loaded, initializing...');
+    
+    // Panggil initData dengan async
+    initData().then(() => {
+        console.log('Data loaded successfully');
+    }).catch(error => {
+        console.error('Error loading data:', error);
+        showToast('Gagal memuat data. Refresh halaman.', 'error');
+    });
+    
+    // Initialize slider
+    const slides = document.querySelectorAll('.slide');
+    if (slides.length > 0) {
+        sliderInterval = setInterval(nextSlide, 10000);
+    }
+});
 
         // Element SDK Integration
         if (window.elementSdk) {
