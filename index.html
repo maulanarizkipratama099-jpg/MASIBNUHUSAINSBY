@@ -595,6 +595,36 @@
                 </div>
             </section>
 
+            <!-- Video Company Profile Section -->
+            <section id="video-section" class="py-20 bg-white">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="text-center mb-12">
+                        <h2 class="section-title text-3xl sm:text-4xl font-bold gradient-text font-playfair">
+                            Video Company Profile
+                        </h2>
+                        <p class="mt-4 text-gray-600 max-w-2xl mx-auto">
+                            Kenali lebih dekat MAS Ibnu Husain melalui video berikut
+                        </p>
+                    </div>
+                    
+                    <!-- Video Container - PASTIKAN ID INI ADA -->
+                    <div id="video-container" class="relative pb-[56.25%] h-0 rounded-2xl overflow-hidden shadow-2xl bg-gray-100">
+                        <!-- Konten akan diisi oleh JavaScript -->
+                    </div>
+                    
+                    <!-- Tombol Edit untuk Admin -->
+                    <div id="edit-video-btn" class="hidden mt-6 text-center">
+                        <button onclick="openVideoModal()" 
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all inline-flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                            Ganti Link YouTube
+                        </button>
+                    </div>
+                </div>
+            </section>
+
             <!-- Quick Links Section -->
             <section class="py-20 bg-gradient-to-b from-white to-blue-50">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1937,7 +1967,47 @@
             <svg id="toast-icon" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"></svg>
             <span id="toast-message" class="font-medium"></span>
         </div>
-    </div>
+                <!-- Video Edit Modal -->
+        <div id="video-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl max-w-lg w-full">
+                <div class="sticky top-0 bg-white border-b border-gray-200 px-8 py-6 flex justify-between items-center rounded-t-3xl">
+                    <h2 class="text-2xl font-bold text-gray-800">Edit Video Company Profile</h2>
+                    <button onclick="closeVideoModal()" class="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+                        <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                
+                <form id="video-form" onsubmit="handleVideoSubmit(event)" class="p-8 space-y-6">
+                    <div>
+                        <label for="video-url" class="block text-sm font-medium text-gray-700 mb-2">Link Video (Google Drive) *</label>
+                        <input type="url" id="video-url" name="video_url" required 
+                            class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all outline-none"
+                            placeholder="https://drive.google.com/file/d/xxxxx/view"
+                            value="">
+                        <p class="text-xs text-gray-500 mt-2">
+                            📌 Upload video ke Google Drive, bagikan publik, lalu copy link<br>
+                            Contoh: https://drive.google.com/file/d/1ABCxyz/view
+                        </p>
+                    </div>
+                    
+                    <!-- Preview Video (untuk YouTube, tapi tidak untuk Google Drive) -->
+                    <div id="video-preview" class="hidden relative pb-[56.25%] h-0 rounded-xl overflow-hidden bg-gray-100">
+                        <iframe id="video-preview-frame" class="absolute top-0 left-0 w-full h-full" frameborder="0" allowfullscreen></iframe>
+                    </div>
+                    
+                    <div class="flex gap-4 pt-4">
+                        <button type="submit" class="flex-1 btn-primary text-white py-4 rounded-xl font-semibold text-lg">
+                            Simpan Video
+                        </button>
+                        <button type="button" onclick="closeVideoModal()" class="px-8 py-4 border-2 border-gray-200 rounded-xl font-semibold text-gray-600 hover:bg-gray-50 transition-all">
+                            Batal
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
     <script src="/_sdk/data_sdk.js"></script>
     <script>
@@ -1966,6 +2036,11 @@
         let isAdminLoggedIn = false;
         const ADMIN_PASSWORD = 'admin123'; // GANTI PASSWORD INI!
 
+                // Video Data Management
+        let videoData = {
+            company_profile: '' // Default kosong
+        };
+
         // Category Icons and Colors
         const categoryStyles = {
             'Akademik': { icon: '📚', color: 'blue', bgColor: 'bg-blue-50', textColor: 'text-blue-600', borderColor: 'border-blue-200' },
@@ -1980,82 +2055,99 @@
         const JSONBIN_BIN_ID = '699e9aead0ea881f40d72ba1';
         const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
 
-        // === FUNGSI UNTUK MEMUAT DATA DARI JSONBIN ===
-        async function loadNewsFromJSONBin() {
-            try {
-                console.log('Mencoba memuat data dari JSONBin...');
-                
-                const response = await fetch(JSONBIN_URL, {
-                    method: 'GET',
-                    headers: {
-                        'X-Master-Key': JSONBIN_API_KEY,
-                        'X-Bin-Meta': 'false'
-                    }
-                });
-                
-                console.log('Response status:', response.status);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                console.log('Data dari JSONBin:', data);
-                
-                if (data && data.news) {
-                    newsData = data.news;
-                } else if (Array.isArray(data)) {
-                    newsData = data;
-                } else {
-                    newsData = [];
-                    await saveNewsToJSONBin();
-                }
-                
-                renderNews();
-                if (isAdminLoggedIn) {
-                    renderAdminNewsList();
-                    updateAdminStats();
-                }
-                
-                return newsData;
-            } catch (error) {
-                console.error('Error lengkap:', error);
-                showToast('Gagal memuat berita: ' + error.message, 'error');
-                newsData = [];
-                renderNews();
-                return [];
+          // === FUNGSI UNTUK MEMUAT DATA DARI JSONBIN ===
+async function loadNewsFromJSONBin() {
+    try {
+        console.log('Mencoba memuat data dari JSONBin...');
+        
+        const response = await fetch(JSONBIN_URL, {
+            method: 'GET',
+            headers: {
+                'X-Master-Key': JSONBIN_API_KEY,
+                'X-Bin-Meta': 'false'
             }
+        });
+        
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
+        
+        const data = await response.json();
+        console.log('Data dari JSONBin:', data);
+        
+        // LOAD DATA NEWS
+        if (data && data.news) {
+            newsData = data.news;
+        } else if (Array.isArray(data)) {
+            newsData = data;
+        } else {
+            newsData = [];
+        }
+        
+        // LOAD DATA VIDEO
+        if (data && data.video) {
+            videoData = data.video;
+            console.log('Video data ditemukan:', videoData);
+        } else {
+            // Jika tidak ada data video, buat default
+            videoData = { company_profile: '' };
+            // Simpan default ke JSONBin
+            await saveNewsToJSONBin();
+        }
+        
+        // RENDER SEMUA
+        renderNews();
+        renderVideo(); // PANGGIL FUNGSI VIDEO
+        
+        if (isAdminLoggedIn) {
+            renderAdminNewsList();
+            updateAdminStats();
+        }
+        
+        return newsData;
+    } catch (error) {
+        console.error('Error lengkap:', error);
+        showToast('Gagal memuat berita: ' + error.message, 'error');
+        newsData = [];
+        renderNews();
+        return [];
+    }
+}
 
-        // === FUNGSI UNTUK MENYIMPAN DATA KE JSONBIN ===
-        async function saveNewsToJSONBin() {
-            try {
-                const dataToSave = {
-                    news: newsData,
-                    lastUpdated: new Date().toISOString()
-                };
-                
-                const response = await fetch(JSONBIN_URL, {
-                    method: 'PUT',
-                    headers: {
-                        'X-Master-Key': JSONBIN_API_KEY,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(dataToSave)
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                console.log('Data saved to JSONBin');
-                return true;
-            } catch (error) {
-                console.error('Error saving to JSONBin:', error);
-                showToast('Gagal menyimpan: ' + error.message, 'error');
-                return false;
-            }
+            // === FUNGSI UNTUK MENYIMPAN DATA KE JSONBIN ===
+async function saveNewsToJSONBin() {
+    try {
+        const dataToSave = {
+            news: newsData,
+            video: videoData, // PENTING: data video harus disertakan
+            lastUpdated: new Date().toISOString()
+        };
+        
+        console.log('Menyimpan ke JSONBin:', dataToSave); // Untuk debugging
+        
+        const response = await fetch(JSONBIN_URL, {
+            method: 'PUT',
+            headers: {
+                'X-Master-Key': JSONBIN_API_KEY,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(dataToSave)
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
+        
+        console.log('Data saved to JSONBin');
+        return true;
+    } catch (error) {
+        console.error('Error saving to JSONBin:', error);
+        showToast('Gagal menyimpan: ' + error.message, 'error');
+        return false;
+    }
+}
 
         // Open Edit News Modal
 function openEditNewsModal(newsId) {
@@ -2213,6 +2305,44 @@ function openEditNewsModal(newsId) {
             return url;
         }
 
+// Extract YouTube ID dari berbagai format URL
+function extractYouTubeId(url) {
+    if (!url) return null;
+    
+    console.log('Extracting ID dari:', url);
+    
+    // Regex untuk berbagai format URL YouTube
+    const patterns = [
+        /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/|youtube\.com\/shorts\/)([^&\n?#]+)/,
+        /youtube\.com\/watch\?.*v=([^&\n?#]+)/
+    ];
+    
+    for (let pattern of patterns) {
+        const match = url.match(pattern);
+        if (match && match[1]) {
+            // Bersihkan ID dari parameter tambahan (seperti ?si=...)
+            const cleanId = match[1].split('?')[0].split('&')[0];
+            console.log('ID ditemukan:', cleanId);
+            return cleanId;
+        }
+    }
+    
+    // Coba ambil dari parameter 'v' di URL
+    try {
+        const urlObj = new URL(url);
+        const vParam = urlObj.searchParams.get('v');
+        if (vParam) {
+            console.log('ID dari parameter v:', vParam);
+            return vParam;
+        }
+    } catch (e) {
+        console.log('Bukan URL valid:', e);
+    }
+    
+    console.log('Tidak ada ID ditemukan');
+    return null;
+}
+
         // Escape HTML
         function escapeHtml(unsafe) {
             return unsafe
@@ -2283,10 +2413,215 @@ function renderNews() {
     }).join('');
 }
 
-        // Initialize on page load
+// Render Video dari Google Drive
+function renderVideo() {
+    const videoContainer = document.getElementById('video-container');
+    const editBtn = document.getElementById('edit-video-btn');
+    
+    if (!videoContainer) return;
+    
+    // Tampilkan/sembunyikan tombol edit
+    if (editBtn) {
+        if (isAdminLoggedIn) {
+            editBtn.classList.remove('hidden');
+        } else {
+            editBtn.classList.add('hidden');
+        }
+    }
+    
+    // Update video jika ada link
+    if (videoData && videoData.company_profile) {
+        // Cek apakah link Google Drive
+        if (videoData.company_profile.includes('drive.google.com')) {
+            // Ekstrak FILE ID dari link Google Drive
+            const fileId = extractGoogleDriveId(videoData.company_profile);
+            if (fileId) {
+                videoContainer.innerHTML = `
+                    <iframe 
+                        class="absolute top-0 left-0 w-full h-full"
+                        src="https://drive.google.com/file/d/${fileId}/preview"
+                        title="Company Profile MAS Ibnu Husain"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; autoplay"
+                        allowfullscreen>
+                    </iframe>
+                `;
+            } else {
+                videoContainer.innerHTML = `
+                    <div class="absolute top-0 left-0 w-full h-full bg-red-50 flex flex-col items-center justify-center">
+                        <p class="text-red-600 text-lg font-medium">Link Google Drive Tidak Valid</p>
+                        <p class="text-red-500 text-sm">Silakan ganti dengan link yang benar</p>
+                    </div>
+                `;
+            }
+        } 
+        // Fallback ke YouTube jika bukan Google Drive
+        else {
+            const videoId = extractYouTubeId(videoData.company_profile);
+            if (videoId) {
+                videoContainer.innerHTML = `
+                    <iframe 
+                        class="absolute top-0 left-0 w-full h-full"
+                        src="https://www.youtube-nocookie.com/embed/${videoId}?autoplay=0&rel=0&showinfo=0&modestbranding=1"
+                        title="Company Profile MAS Ibnu Husain"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen>
+                    </iframe>
+                `;
+            } else {
+                videoContainer.innerHTML = `
+                    <div class="absolute top-0 left-0 w-full h-full bg-red-50 flex flex-col items-center justify-center">
+                        <p class="text-red-600 text-lg font-medium">Link Tidak Valid</p>
+                        <p class="text-red-500 text-sm">Gunakan link Google Drive</p>
+                    </div>
+                `;
+            }
+        }
+    } else {
+        videoContainer.innerHTML = `
+            <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-100 to-blue-200 flex flex-col items-center justify-center">
+                <svg class="w-24 h-24 text-blue-400 mb-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z M9.5 8.5v7l6-3.5-6-3.5z" />
+                </svg>
+                <p class="text-blue-600 text-lg font-medium">Belum ada video</p>
+                <p class="text-blue-500 text-sm">Login sebagai admin untuk menambahkan video</p>
+            </div>
+        `;
+    }
+}
+
+// Fungsi untuk ekstrak Google Drive File ID
+function extractGoogleDriveId(url) {
+    if (!url) return null;
+    
+    console.log('Extracting Google Drive ID dari:', url);
+    
+    // Format: https://drive.google.com/file/d/FILE_ID/view
+    const patterns = [
+        /\/d\/([^\/?&]+)/,
+        /id=([^&]+)/,
+        /file\/d\/([^\/?&]+)/
+    ];
+    
+    for (let pattern of patterns) {
+        const match = url.match(pattern);
+        if (match && match[1]) {
+            console.log('Google Drive ID ditemukan:', match[1]);
+            return match[1];
+        }
+    }
+    
+    return null;
+}
+
+// Handle Video Submit
+async function handleVideoSubmit(event) {
+    event.preventDefault();
+    
+    const videoUrl = document.getElementById('video-url').value.trim();
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    
+    if (!videoUrl) {
+        showToast('Link video wajib diisi!', 'error');
+        return;
+    }
+    
+    // Validasi URL Google Drive
+    const fileId = extractGoogleDriveId(videoUrl);
+    if (!fileId) {
+        showToast('Link Google Drive tidak valid!', 'error');
+        return;
+    }
+    
+    // Disable button
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Menyimpan...';
+    
+    try {
+        // Simpan data video
+        videoData = {
+            company_profile: videoUrl
+        };
+        
+        console.log('Menyimpan video:', videoData);
+        
+        // Simpan ke JSONBin
+        const saved = await saveNewsToJSONBin();
+        
+        if (saved) {
+            showToast('Video berhasil diupdate!', 'success');
+            renderVideo(); // Update tampilan video
+            closeVideoModal();
+        } else {
+            showToast('Gagal menyimpan video!', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('Terjadi kesalahan: ' + error.message, 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+    }
+}
+
+// Close Video Modal
+window.closeVideoModal = function() {
+    console.log('closeVideoModal dipanggil');
+    const modal = document.getElementById('video-modal');
+    const preview = document.getElementById('video-preview');
+    const frame = document.getElementById('video-preview-frame');
+    
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+    
+    if (preview) {
+        preview.classList.add('hidden');
+    }
+    
+    if (frame) {
+        frame.src = '';
+    }
+}
+
+// Open Video Modal
+window.openVideoModal = function() {
+    console.log('openVideoModal dipanggil');
+    const modal = document.getElementById('video-modal');
+    const input = document.getElementById('video-url');
+    const preview = document.getElementById('video-preview');
+    const frame = document.getElementById('video-preview-frame');
+    
+    if (!modal) {
+        console.error('Modal video tidak ditemukan!');
+        showToast('Modal video tidak ditemukan!', 'error');
+        return;
+    }
+    
+    // Isi input dengan data video yang ada
+    if (input) {
+        input.value = videoData.company_profile || '';
+        
+        // Tampilkan preview jika ada video
+        if (videoData.company_profile) {
+            const videoId = extractYouTubeId(videoData.company_profile);
+            if (videoId) {
+                frame.src = `https://www.youtube.com/embed/${videoId}`;
+                preview.classList.remove('hidden');
+            }
+        }
+    }
+    
+    modal.classList.remove('hidden');
+    console.log('Modal dibuka');
+}
+
+   // Initialize on page load
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('Page loaded, loading news from JSONBin...');
-    await loadNewsFromJSONBin(); // <<< INI PANGGILAN KE JSONBin (BENAR)
+    await loadNewsFromJSONBin(); // Ini sudah memanggil renderVideo() di dalamnya
     
     // Initialize slider
     const slides = document.querySelectorAll('.slide');
@@ -2511,6 +2846,7 @@ async function handleNewsSubmit(event) {
                 errorMsg.classList.add('hidden');
                 updateAdminStats();
                 renderAdminNewsList();
+                renderVideo(); // <<< TAMBAHKAN INI
                 showToast('Login berhasil!', 'success');
             } else {
                 errorMsg.classList.remove('hidden');
@@ -2519,12 +2855,13 @@ async function handleNewsSubmit(event) {
             }
         }
 
-        // Logout Admin
+               // Logout Admin
         function logoutAdmin() {
             isAdminLoggedIn = false;
             document.getElementById('admin-dashboard').classList.add('hidden');
             document.getElementById('admin-login').classList.remove('hidden');
             document.getElementById('admin-password').value = '';
+            renderVideo(); // <<< TAMBAHKAN INI
             showToast('Logout berhasil!', 'success');
             navigateTo('home');
         }
@@ -2831,10 +3168,20 @@ async function handleNewsSubmit(event) {
                 ])
             });
         }
-    </script>
-</body>
+        // Pastikan tombol edit video bisa diklik setelah DOM loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Delegasi event untuk tombol edit video
+    document.body.addEventListener('click', function(e) {
+        const editBtn = e.target.closest('#edit-video-btn button');
+        if (editBtn) {
+            e.preventDefault();
+            console.log('Tombol edit video diklik');
+            openVideoModal();
+        }
+    });
+});
+ </script>
 
-</html>
 
 
 
