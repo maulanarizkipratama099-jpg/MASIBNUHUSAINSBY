@@ -2677,12 +2677,11 @@
             }, 500);
         }
 
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Page loaded, initializing...');
-            initData();
+    // Initialize on page load
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('Page loaded, loading news from JSONBin...');
+            await loadNewsFromJSONBin();
             
-            // Initialize slider
             const slides = document.querySelectorAll('.slide');
             if (slides.length > 0) {
                 sliderInterval = setInterval(nextSlide, 10000);
