@@ -6,6 +6,7 @@
     <title>MAS IBNU HUSAIN - Inspirative, Islamic dan School</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="/_sdk/element_sdk.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&amp;family=Playfair+Display:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
     <style>
         body {
@@ -2751,7 +2752,123 @@
             });
         }
     </script>
+
+    <script>
+// ==================== SUPABASE (TAMBAHAN SAJA, TIDAK MENGUBAH APAPUN) ====================
+// GANTI DENGAN PUNYA ANDA!
+const SUPABASE_URL = 'https://xyzabcdefg.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh5emFiY2RlZmciLCJyb2xlIjoiYW5vbiIsImlhdCI6MTYyMzQ1Njc4OSwiZXhwIjoxOTM5MDMyNzg5fQ.abcdefg';
+
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Fungsi untuk sync data dari Supabase ke localStorage
+async function syncFromSupabase() {
+    try {
+        const { data, error } = await supabase.from('news').select('*');
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+            // Konversi ke format yang dimengerti website
+            const newsData = data.map(item => ({
+                __backendId: item.id,
+                title: item.title,
+                category: item.category,
+                content: item.content,
+                image_url: item.image_url || '',
+                created_at: new Date(item.created_at).getTime()
+            }));
+            
+            // Simpan ke localStorage
+            localStorage.setItem('newsData', JSON.stringify(newsData));
+            
+            // Refresh halaman biar data baru keload
+            if (window.location.href.includes('berita') || window.location.href.includes('admin')) {
+                location.reload();
+            } else {
+                // Paksa refresh data
+                if (typeof initData === 'function') initData();
+            }
+            
+            console.log('✅ Sync from Supabase success');
+        }
+    } catch (e) {
+        console.log('Supabase sync failed, using local data only:', e);
+    }
+}
+
+// Fungsi untuk sync data dari localStorage ke Supabase
+async function syncToSupabase() {
+    try {
+        const localData = localStorage.getItem('newsData');
+        if (!localData) return;
+        
+        const newsData = JSON.parse(localData);
+        
+        for (const item of newsData) {
+            // Cek apakah sudah ada di Supabase
+            const { data } = await supabase
+                .from('news')
+                .select('id')
+                .eq('id', item.__backendId)
+                .maybeSingle();
+            
+            if (!data) {
+                // Insert jika belum ada
+                await supabase.from('news').insert([{
+                    id: item.__backendId,
+                    title: item.title,
+                    category: item.category,
+                    content: item.content,
+                    image_url: item.image_url,
+                    created_at: new Date(item.created_at).toISOString()
+                }]);
+            }
+        }
+        
+        console.log('✅ Sync to Supabase success');
+    } catch (e) {
+        console.log('Supabase sync failed:', e);
+    }
+}
+
+// Jalankan sync saat halaman dimuat
+document.addEventListener('DOMContentLoaded', function() {
+    // Coba sync dari Supabase dulu
+    syncFromSupabase();
+    
+    // Juga sync ke Supabase setelah 2 detik (untuk kirim data lokal ke cloud)
+    setTimeout(syncToSupabase, 2000);
+});
+
+// Override fungsi handleNewsSubmit dengan aman
+if (typeof handleNewsSubmit === 'function') {
+    const originalHandleNewsSubmit = handleNewsSubmit;
+    window.handleNewsSubmit = function(event) {
+        // Jalankan fungsi asli dulu
+        originalHandleNewsSubmit(event);
+        
+        // Setelah itu sync ke Supabase
+        setTimeout(syncToSupabase, 1000);
+    };
+}
+
+// Override fungsi confirmDelete dengan aman
+if (typeof confirmDelete === 'function') {
+    const originalConfirmDelete = confirmDelete;
+    window.confirmDelete = function() {
+        // Jalankan fungsi asli dulu
+        originalConfirmDelete();
+        
+        // Setelah itu sync ke Supabase
+        setTimeout(syncToSupabase, 1000);
+    };
+}
+</script>
 </body>
 
 </html>
+
+
+
+
 
