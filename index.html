@@ -1976,11 +1976,11 @@
         };
 
         // === KONFIGURASI JSONBIN ===
-        const JSONBIN_API_KEY = '$2a$10$9/lnLh8wNXzQeA5Iya7JUO1vXEdgqh5GgC12dcNeWhzzVSkSXtdFq'; 
-        const JSONBIN_BIN_ID = '699e8644d0ea881f40d6fd85';
-        const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`;
+        const JSONBIN_API_KEY = '$2a$10$c2wl9M3XkJISBbKG.cphye6O19BK/7SmS7sPZ6aDV2DYiV4bvEHS2'; 
+        const JSONBIN_BIN_ID = '699e9aead0ea881f40d72ba1';
+        const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
 
-        // === FUNGSI UNTUK MEMUAT DATA DARI JSONBIN ===
+        // === FUNGSI UNTUK MEMUAT DATA DARI JSONIN ===
         async function loadNewsFromJSONBin() {
             try {
                 const response = await fetch(JSONBIN_URL, {
@@ -2269,7 +2269,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
 
         // Handle News Submit
-        async function handleNewsSubmit(event) {
+async function handleNewsSubmit(event) {
     event.preventDefault();
     
     const submitBtn = document.getElementById('submit-btn');
@@ -2291,31 +2291,54 @@ document.addEventListener('DOMContentLoaded', async function() {
         return;
     }
     
-    if (editingNewsId) {
-        // UPDATE MODE
-        await updateNews(editingNewsId, {
-            title: title,
-            category: category,
-            content: content,
-            image_url: imageUrl
-        });
-    } else {
-        // CREATE MODE
-        const newsItem = {
-            __backendId: 'news_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-            title: title,
-            category: category,
-            content: content,
-            image_url: imageUrl,
-            created_at: Date.now()
-        };
+    try {
+        if (editingNewsId) {
+            // UPDATE MODE
+            const index = newsData.findIndex(n => n.__backendId === editingNewsId);
+            if (index !== -1) {
+                newsData[index] = {
+                    ...newsData[index],
+                    title: title,
+                    category: category,
+                    content: content,
+                    image_url: imageUrl
+                };
+            }
+        } else {
+            // CREATE MODE
+            const newsItem = {
+                __backendId: 'news_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                title: title,
+                category: category,
+                content: content,
+                image_url: imageUrl,
+                created_at: Date.now()
+            };
+            
+            newsData.push(newsItem);
+        }
         
-        await addNews(newsItem);
+        // Simpan ke JSONBin
+        const saved = await saveNewsToJSONBin();
+        
+        if (saved) {
+            showToast('Berita berhasil disimpan!', 'success');
+            closeNewsModal();
+            renderNews();
+            if (isAdminLoggedIn) {
+                renderAdminNewsList();
+                updateAdminStats();
+            }
+        } else {
+            showToast('Gagal menyimpan berita!', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('Terjadi kesalahan: ' + error.message, 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitText.textContent = originalText;
     }
-    
-    closeNewsModal();
-    submitBtn.disabled = false;
-    submitText.textContent = originalText;
 }
 
         // View News Detail
