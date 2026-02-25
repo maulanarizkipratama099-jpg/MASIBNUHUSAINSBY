@@ -1980,48 +1980,6 @@
         const JSONBIN_BIN_ID = '699e9aead0ea881f40d72ba1';
         const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
 
-        // === FUNGSI UNTUK MEMUAT DATA DARI JSONIN ===
-        async function loadNewsFromJSONBin() {
-            try {
-                const response = await fetch(JSONBIN_URL, {
-                    method: 'GET',
-                    headers: {
-                        'X-Master-Key': JSONBIN_API_KEY,
-                        'X-Bin-Meta': 'false'
-                    }
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Gagal memuat data');
-                }
-                
-                const data = await response.json();
-                
-                // Data disimpan dalam format { news: [...] }
-                if (data && data.news) {
-                    newsData = data.news;
-                } else if (Array.isArray(data)) {
-                    newsData = data;
-                } else {
-                    newsData = [];
-                }
-                
-                renderNews();
-                if (isAdminLoggedIn) {
-                    renderAdminNewsList();
-                    updateAdminStats();
-                }
-                
-                return newsData;
-            } catch (error) {
-                console.error('Error loading from JSONBin:', error);
-                showToast('Gagal memuat berita dari server', 'error');
-                newsData = [];
-                renderNews();
-                return [];
-            }
-        }
-
         // === FUNGSI UNTUK MEMUAT DATA DARI JSONBIN ===
         async function loadNewsFromJSONBin() {
             try {
@@ -2096,6 +2054,92 @@
                 console.error('Error saving to JSONBin:', error);
                 showToast('Gagal menyimpan: ' + error.message, 'error');
                 return false;
+            }
+        }
+
+        // Open Edit News Modal
+function openEditNewsModal(newsId) {
+    console.log('Mencoba edit berita dengan ID:', newsId); // Untuk debugging
+    
+    const news = newsData.find(n => n.__backendId === newsId);
+    if (!news) {
+        console.error('Berita tidak ditemukan dengan ID:', newsId);
+        showToast('Berita tidak ditemukan!', 'error');
+        return;
+    }
+    
+    editingNewsId = newsId;
+    document.getElementById('modal-title').textContent = 'Edit Berita';
+    document.getElementById('submit-text').textContent = 'Update Berita';
+    
+    // Isi form dengan data berita
+    document.getElementById('news-title').value = news.title || '';
+    document.getElementById('news-category').value = news.category || '';
+    document.getElementById('news-content').value = news.content || '';
+    document.getElementById('news-image-url').value = news.image_url || '';
+    
+    // Tampilkan preview gambar jika ada
+    if (news.image_url) {
+        const urlPreview = document.getElementById('url-preview');
+        const urlPreviewImg = document.getElementById('url-preview-img');
+        
+        // Bersihkan event listener lama
+        urlPreviewImg.onload = null;
+        urlPreviewImg.onerror = null;
+        
+        urlPreviewImg.src = convertGoogleDriveUrl(news.image_url);
+        urlPreview.classList.remove('hidden');
+    } else {
+        document.getElementById('url-preview').classList.add('hidden');
+    }
+    
+    // Tampilkan modal
+    document.getElementById('news-modal').classList.remove('hidden');
+}
+
+        // === FUNGSI CRUD ===
+        async function addNews(newsItem) {
+            newsData.push(newsItem);
+            const saved = await saveNewsToJSONBin();
+            if (saved) {
+                renderNews();
+                if (isAdminLoggedIn) {
+                    renderAdminNewsList();
+                    updateAdminStats();
+                }
+                showToast('Berita berhasil ditambahkan!', 'success');
+            }
+        }
+
+        async function updateNews(newsId, updatedItem) {
+            const index = newsData.findIndex(n => n.__backendId === newsId);
+            if (index !== -1) {
+                newsData[index] = { ...newsData[index], ...updatedItem };
+                const saved = await saveNewsToJSONBin();
+                if (saved) {
+                    renderNews();
+                    if (isAdminLoggedIn) {
+                        renderAdminNewsList();
+                        updateAdminStats();
+                    }
+                    showToast('Berita berhasil diupdate!', 'success');
+                }
+            }
+        }
+
+        async function deleteNews(newsId) {
+            const index = newsData.findIndex(n => n.__backendId === newsId);
+            if (index !== -1) {
+                newsData.splice(index, 1);
+                const saved = await saveNewsToJSONBin();
+                if (saved) {
+                    renderNews();
+                    if (isAdminLoggedIn) {
+                        renderAdminNewsList();
+                        updateAdminStats();
+                    }
+                    showToast('Berita berhasil dihapus!', 'success');
+                }
             }
         }
 
@@ -2179,32 +2223,65 @@
                 .replace(/'/g, "&#039;");
         }
 
-        // Render News
-        function renderNews() {
-            const container = document.getElementById('news-container');
-            
-            if (!newsData || newsData.length === 0) {
-                container.innerHTML = `
-                    <div class="col-span-full text-center py-20">
-                        <svg class="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
-                        </svg>
-                        <p class="text-gray-500 text-lg">Belum ada berita. Klik "Tambah Berita" untuk memulai.</p>
-                    </div>
-                `;
-                return;
-            }
+        // Render News di halaman Berita
+function renderNews() {
+    const container = document.getElementById('news-container');
+    
+    if (!newsData || newsData.length === 0) {
+        container.innerHTML = `
+            <div class="col-span-full text-center py-20">
+                <svg class="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
+                </svg>
+                <p class="text-gray-500 text-lg">Belum ada berita.</p>
+            </div>
+        `;
+        return;
+    }
 
-            const sortedNews = [...newsData].sort((a, b) => b.created_at - a.created_at);
-            
-            container.innerHTML = sortedNews.map(news => {
-                const style = categoryStyles[news.category] || categoryStyles['Lainnya'];
-                const isNew = isNewNews(news.created_at);
-                const imageUrl = convertGoogleDriveUrl(news.image_url);
+    // Sort by date (newest first)
+    const sortedNews = [...newsData].sort((a, b) => b.created_at - a.created_at);
+    
+    container.innerHTML = sortedNews.map(news => {
+        const style = categoryStyles[news.category] || categoryStyles['Lainnya'];
+        const isNew = isNewNews(news.created_at);
+        const imageUrl = convertGoogleDriveUrl(news.image_url);
+        
+        return `
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden card-hover cursor-pointer" onclick="viewNewsDetail('${news.__backendId}')">
+                ${imageUrl ? `
+                    <div class="h-48 overflow-hidden bg-gray-100">
+                        <img src="${imageUrl}" alt="${escapeHtml(news.title)}" class="w-full h-full object-cover" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'w-full h-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center\\'><span class=\\'text-6xl\\'>${style.icon}</span></div>';">
+                    </div>
+                ` : `
+                    <div class="h-48 bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
+                        <span class="text-6xl">${style.icon}</span>
+                    </div>
+                `}
                 
-                return `...`; // (saya singkat, tapi Anda bisa copy dari kode asli)
-            }).join('');
-        }
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="inline-flex items-center gap-1 ${style.bgColor} ${style.textColor} px-3 py-1 rounded-full text-xs font-medium">
+                            <span>${style.icon}</span>
+                            <span>${news.category}</span>
+                        </span>
+                        ${isNew ? '<span class="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold">BARU</span>' : ''}
+                    </div>
+                    
+                    <h3 class="text-xl font-bold text-gray-800 mb-2 line-clamp-2">${escapeHtml(news.title)}</h3>
+                    <p class="text-gray-600 text-sm mb-4 line-clamp-3">${escapeHtml(news.content)}</p>
+                    
+                    <div class="flex items-center gap-2 text-sm text-gray-500">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>${formatDate(news.created_at)}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
 
         // Initialize on page load
 document.addEventListener('DOMContentLoaded', async function() {
@@ -2315,8 +2392,8 @@ async function handleNewsSubmit(event) {
                 created_at: Date.now()
             };
             
-            newsData.push(newsItem);
-        }
+               await addNews(newsItem);
+}
         
         // Simpan ke JSONBin
         const saved = await saveNewsToJSONBin();
